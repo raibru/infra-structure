@@ -1,0 +1,47 @@
+---
+# vars file for setup.common.tools
+utils_list_prerequisites:
+    - aptitude
+
+utils_list_basic:
+    - command-not-found
+    - dstat
+    - htop
+    - atop
+    - smem
+    - unzip
+    - zip
+    - gzip
+    - bzip2
+    - vim
+    - git
+    - neofetch
+    - tmux
+    - glances
+
+utils_list_network:
+    - curl
+    - iftop
+    - mtr
+    - nmap
+    - wget
+    - wget2
+    - telnet
+    - iperf
+    - iperf3
+    - nuttcp
+    - tcpdump
+
+utils_list_filesystem: 
+    - iotop
+    - ncdu
+    - lsof
+    - tree
+    - mc
+
+utils_list_dev: 
+    - pstack
+    - strace
+    - ltrace
+    
+utils_list_user: []
