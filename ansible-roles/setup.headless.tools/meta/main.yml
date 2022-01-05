@@ -1,0 +1,17 @@
+galaxy_info:
+  author: raibru
+  description: install some useful tools for a headless ubuntu
+  company:
+
+  license: license (MIT)
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Ubuntu
+      versions:
+      - 20.04
+  galaxy_tags: []
+
+dependencies: []
+
