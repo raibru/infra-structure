@@ -1,0 +1,10 @@
+---
+# vars file for setup.server.nfs
+
+__nfs_package: nfs-kernel-server
+__nfs_artifacts_dirs:
+  - "/mnt/nfs/{{ inventory_hostname_short }}/wireshark"
+  - "/mnt/nfs/{{ inventory_hostname_short }}/logs"
+  - "/mnt/nfs/{{ inventory_hostname_short }}/session"
+  - "/mnt/nfs/{{ inventory_hostname_short }}/archive"
+
