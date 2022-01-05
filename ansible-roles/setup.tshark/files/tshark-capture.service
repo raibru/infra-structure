@@ -1,0 +1,15 @@
+# /lib/systemd/system/tshark-capture.service
+
+[Unit]
+Description=Tshark Capture Service
+After=multi-user.target
+
+[Service]
+Type=idle
+User=vagrant
+Group=wireshark
+ExecStart=/usr/local/bin/tshark-capture
+
+[Install]
+WantedBy=multi-user.target
+

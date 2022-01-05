@@ -1,0 +1,18 @@
+galaxy_info:
+  author: raibru
+  description: install tshark and store pcap capture files in NFS share point artifact wireshark
+  company:
+
+  license: license (MIT)
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Ubuntu
+      versions:
+      - 20.04
+  galaxy_tags: []
+
+dependencies: []
+
+

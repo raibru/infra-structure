@@ -1,0 +1,29 @@
+#!/bin/bash
+
+TSHARK_CAPTURE=/var/capture/tshark
+TSHARK_FILTERS=$TSHARK_CAPTURE/.tshark_filters
+TSHARK_DEVICES=$TSHARK_CAPTURE/.tshark_devices
+
+CAPTURE_SIZE=300000
+CAPTURE_FILES=100
+
+FILTERS=""
+#FILTERS="-f tcp"
+if [ -f "$TSHARK_FILTERS" ]; then
+  FILTERS=$(cat $TSHARK_FILTERS)
+fi
+
+DEVICES="-i eth0"
+#DEVICES="-i eth0 -i eth1"
+if [ -f "$TSHARK_DEVICES" ]; then
+  dev=$(cat $TSHARK_DEVICES)
+  if [ ! -z "$dev" ]; then
+    DEVICES=$dev
+  fi
+fi
+
+PCAP_NAME=$(date +'%Y-%m-%d')-$(hostname).pcap
+
+tshark $DEVICES $FILTERS -q -b filesize:$CAPTURE_SIZE -b files:$CAPTURE_FILES -w $TSHARK_CAPTURE/$PCAP_NAME
+
+# EOF
