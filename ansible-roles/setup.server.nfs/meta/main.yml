@@ -1,0 +1,18 @@
+galaxy_info:
+  author: raibru
+  description: install NFS server tool on a master hosts and export NFS directory for client workers
+  company:
+
+  license: license (MIT)
+
+  min_ansible_version: 2.1
+
+  platforms:
+    - name: Ubuntu
+      versions:
+      - 20.04
+  galaxy_tags: []
+
+dependencies: []
+
+

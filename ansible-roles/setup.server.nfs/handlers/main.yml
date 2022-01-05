@@ -1,0 +1,14 @@
+---
+# handlers file for setup.server.nfs
+
+#- name: restart NFS
+#  service:
+#    name: "{{ nfs_service }}"
+#    state: restarted
+#  when: nfs_exports_result is changed
+#
+#- name: restart rpcbind
+#  service:
+#    name: rpcbind
+#    state: restarted
+#  when: nfs_only_v4 | bool
