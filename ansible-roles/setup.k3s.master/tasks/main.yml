@@ -1,0 +1,29 @@
+---
+# tasks file for setup.k3s.master
+
+  - name: install and start k3s in master
+    become: true
+    become_method: sudo
+    shell: 'curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--bind-address={{ hostvars["vm-cluster-master"].ansible_host }} --node-external-ip={{ hostvars["vm-cluster-master"].ansible_host }} --flannel-iface=eth1" K3S_KUBECONFIG_MODE="644" sh -s -'
+
+  - name: get server node token
+    become: true
+    become_method: sudo
+    shell: "cat /var/lib/rancher/k3s/server/node-token"
+    register: cluster_token
+
+  - name: create fact with token
+    set_fact:
+      cluster_token: "{{ cluster_token }}"
+
+#  - debug:
+#      var: cluster_token.stdout
+#
+#  - debug:
+#      var: hostvars["vm-cluster-master"].cluster_token.stdout
+#    when: inventory_hostname_short | regex_search('.*master.*')
+#
+#  - debug:
+#      var: hostvars["vm-cluster-master"].ansible_host 
+#    when: inventory_hostname_short | regex_search('.*master.*')
+
