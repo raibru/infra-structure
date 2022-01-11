@@ -1,0 +1,16 @@
+---
+# tasks file for setup.iptables
+
+  - name: install iptables-persistent
+    become: true
+    become_method: sudo
+    apt:
+      name: "{{ iptables_package }}"
+      state: present
+
+  - name: flush all chain in the iptables
+    become: true
+    become_method: sudo
+    command:
+      cmd: iptables -F  
+
