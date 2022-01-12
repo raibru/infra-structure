@@ -1,0 +1,21 @@
+---
+- name: stop executing network capture
+  hosts: workers
+
+  tasks:
+    - name: stop tshark network capture
+      become: true
+      service:
+        name: tshark-capture.service
+        state: stopped
+
+    - name: print tshark-capture.service status
+      command:
+        cmd: systemctl status tshark-capture.service
+      register: status_result
+      failed_when: False
+      changed_when: False
+
+    - debug:
+        var: status_result.stdout_lines
+
