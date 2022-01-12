@@ -1,0 +1,109 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+master_name = "vm-master"
+master_ip =   "192.168.59.11"
+workers = { 
+              "vm-worker1" => "192.168.59.12",
+              "vm-worker2" => "192.168.59.13",
+              "vm-worker3" => "192.168.59.14"
+          }
+reg_name  = "vm-registry"
+reg_ip =    "192.168.59.10"
+
+# Extra parameters in INSTALL_K3S_EXEC variable because of
+# K3s picking up the wrong interface when starting server and agent
+# https://github.com/alexellis/k3sup/issues/306
+
+master_script = <<-SHELL
+  sudo -i
+  export INSTALL_K3S_EXEC="--bind-address=#{master_ip} --node-external-ip=#{master_ip} --flannel-iface=eth1"
+  export K3S_KUBECONFIG_MODE="644"
+  curl -sfL https://get.k3s.io | sh -
+  echo "Sleeping for 5 seconds to wait for k3s to start"
+  sleep 5
+  cp /var/lib/rancher/k3s/server/node-token /mnt/vm-cluster/
+  cp /etc/rancher/k3s/k3s.yaml /mnt/vm-cluster/
+  SHELL
+
+worker_script = <<-SHELL
+  sudo -i
+  export K3S_TOKEN_FILE=/mnt/vm-cluster/node-token
+  export K3S_URL=https://#{master_ip}:6443
+  export INSTALL_K3S_EXEC="--flannel-iface=eth1"
+  curl -sfL https://get.k3s.io | sh -
+  SHELL
+
+registry_script = <<-SHELL
+  docker pull registry:latest
+  docker tag registry:latest registry:2.7
+  docker tag registry:latest registry:run
+  docker run -d -p 5000:5000 --restart always -v /mnt/registry:/var/lib/registry --name registry registry:run
+  echo "Sleeping for 5 seconds to wait for docker registry container to start"
+  sleep 5
+  echo "Private docker registry content:"
+  curl -k -s -X GET http://192.168.59.10:5000/v2/_catalog
+  SHELL
+
+
+Vagrant.configure("2") do |config|
+  #config.vm.box = "bento/ubuntu-20.04"
+  
+  # using only local
+  config.ssh.insert_key = false
+  # no sync folder
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  # setup machines
+  #config.vm.provider :virtualbox do |v|
+  #  v.memory = 1024
+  #  v.linked_clone = true
+  #end
+
+  # master setup
+  config.vm.define master_name, primary: true do |master|
+    master.vm.box = "bento/ubuntu-20.04"
+    master.vm.hostname = "#{master_name}.test"
+    master.vm.network :private_network, ip: master_ip
+    master.vm.synced_folder "/home/rbr/Projects/share/vbox/vm-cluster", "/mnt/vm-cluster"
+    master.vm.provider :virtualbox do |vb|
+      vb.memory = "2048"
+      vb.cpus = "2"
+      vb.linked_clone = true
+    end
+    #master.vm.provision "shell", inline: master_script
+  end
+
+  # workers setup
+  workers.each do |worker_name, worker_ip|
+    config.vm.define worker_name do |worker|
+      worker.vm.box = "bento/ubuntu-20.04"
+      worker.vm.hostname = "#{worker_name}.test"
+      worker.vm.network :private_network, ip: worker_ip
+      worker.vm.provider :virtualbox do |vb|
+        vb.memory = "1024"
+        vb.cpus = "1"
+        vb.linked_clone = true
+      end
+      #worker.vm.provision "shell", inline: worker_script
+    end
+  end
+
+  config.vm.define reg_name, primary: true do |reg|
+    reg.vm.box = "gusztavvargadr/docker-linux"
+    reg.vm.hostname = "#{reg_name}.test"
+    reg.vm.network :private_network, ip: reg_ip
+    #reg.vm.synced_folder "/home/rbr/Projects/share/vbox/vm-cluster/register", "/mnt/vm-register"
+    reg.vm.provider :virtualbox do |vb|
+      vb.memory = "1024"
+      vb.cpus = "1"
+      vb.linked_clone = true
+    end
+    reg.vm.provision "shell", inline: registry_script
+  end
+
+#  config.vm.provision "ansible" do |ansible|
+#    ansible.playbook = "playbooks/setup_cluster.yml"
+#  end
+
+end
+

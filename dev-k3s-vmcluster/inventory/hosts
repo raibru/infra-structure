@@ -1,0 +1,25 @@
+# host inventory
+
+# vm cluster server
+[master]
+vm-cluster-master ansible_host=192.168.59.11 ansible_user=vagrant
+
+# vm workers server
+[workers]
+vm-cluster-worker1 ansible_host=192.168.59.12 ansible_user=vagrant
+vm-cluster-worker2 ansible_host=192.168.59.13 ansible_user=vagrant
+vm-cluster-worker3 ansible_host=192.168.59.14 ansible_user=vagrant
+
+# group all servers
+[cluster:children]
+master
+workers
+
+# variables for all cluster servers
+[cluster:vars]
+cluster_user=vagrant
+ansible_ssh_user={{ cluster_user }}
+ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
+kubemaster={{ vm-cluster-master }}
+
+# EOF
