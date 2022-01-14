@@ -1,0 +1,3 @@
+---
+# defaults file for iptables
+iptables_package: iptables-persistent

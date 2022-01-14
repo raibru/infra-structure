@@ -1,4 +1,0 @@
----
-# vars file for setup.tshark
-__tshark_group: wireshark
-__tshark_package: tshark

@@ -1,0 +1,79 @@
+---
+# tasks file for server.nfs
+
+- name: install NFS for server
+  become: true
+  become_method: sudo
+  apt:
+    name: "{{ nfs_package }}"
+    state: present
+
+- name: create directory /mnt/nfs
+  become: true
+  become_method: sudo
+  file:
+    path: "{{ nfs_export_dir }}"
+    owner: vagrant
+    group: vagrant
+    mode: 0755
+    state: directory
+
+#- name: link NFS share to outside
+#  become: true
+#  become_method: sudo
+#  file:
+#    src: /mnt/nfs
+#    dest: /mnt/vm-cluster/nfs
+#    owner: vagrant
+#    group: vagrant
+#    mode: 0755
+#    state: link
+
+- name: ensure NFS share directories listed in file /etc/exports
+  lineinfile:
+    dest: /etc/exports
+    regexp: "^{{ nfs_export_dir }} "
+    line: "{{ nfs_export_dir }} {{ nfs_export_params }}"
+    create: yes
+  register: nfs_exports_result
+
+- name: run export NFS to physical file system
+  become: true
+  become_method: sudo
+  command:
+    cmd: exportfs -ra
+  when: nfs_exports_result is changed
+
+- name: restart NFS server service
+  service:
+    name: "{{ nfs_service }}"
+    state: restarted
+  when: nfs_exports_result is changed
+
+- name: create artifacts directories from list
+  file:
+    path: "{{ item }}"
+    owner: vagrant
+    group: vagrant
+    mode: 0775
+    state: directory
+  with_items: "{{ nfs_artifacts_dirs }}"
+    #when: nfs_exports_result is changed
+
+- name: create directory /home/vagrant/docs
+  file:
+    path: /home/vagrant/docs
+    owner: vagrant
+    group: vagrant
+    mode: 0775
+    state: directory
+
+- name: link short access of NFS share to /home/vagrant/docs/artifacts
+  file:
+    src: "{{ nfs_export_dir }}/{{ inventory_hostname_short }}"
+    dest: /home/vagrant/docs/artifacts
+    owner: vagrant
+    group: vagrant
+    mode: 0775
+    state: link
+

@@ -1,3 +1,0 @@
----
-# defaults file for setup.iptables
-iptables_package: iptables-persistent
