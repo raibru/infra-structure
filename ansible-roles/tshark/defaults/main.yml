@@ -1,0 +1,16 @@
+---
+# defaults file for tshark
+tshark_group: "{{ __tshark_group }}"
+tshark_package: "{{ __tshark_package }}"
+
+system_capture_dir: /var/capture
+tshark_log_dir: /var/log/tshark
+tshark_capture_dir: "{{ system_capture_dir }}/tshark"
+
+nfs_artifact_wireshark_dir: /mnt/nfs/wireshark
+
+setup_tshark_service: true
+
+tshark_group_members:
+  vagrant:
+    state: present

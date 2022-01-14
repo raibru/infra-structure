@@ -3,25 +3,25 @@
   hosts: cluster
   become: true
   roles:
-    - setup.common.tools
+    - common.tools
 
 - name: setup master behavior
   hosts: master
   become: true
   roles:
-    - setup.nfs.server
-    - setup.k3s.master
+    - nfs.server
+    - k3s.master
 
 - name: setup workers behavior
   hosts: workers
   become: true
   roles:
-    - setup.nfs.client
-    - setup.k3s.node
+    - nfs.client
+    - k3s.node
 
 - name: setup tshark in cluster
   hosts: cluster
   become: true
   roles:
-    - setup.tshark
+    - tshark
 

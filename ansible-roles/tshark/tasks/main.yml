@@ -1,0 +1,147 @@
+---
+# tasks file for tshark
+- name: get setuid is selected
+  command: debconf-show wireshark-common
+  changed_when: false
+  register: register_debconf_show
+
+- name: set install-setuid and get execute result
+  shell: echo debconf wireshark-common/install-setuid select true | debconf-set-selections
+  register: register_debconf_set
+  when:
+    - "not '* wireshark-common/install-setuid: true' in register_debconf_show.stdout_lines"
+
+- name: install tshark
+  apt:
+    name: "{{ tshark_package }}"
+    state: present
+
+- name: run dpkg-reconfigure
+  command: dpkg-reconfigure -f noninteractive wireshark-common
+  when: register_debconf_set.changed
+
+- name: create tshark_group
+  group:
+    name: "{{ tshark_group }}"
+    state: present
+
+- name: create log directory
+  file:
+    path: "{{ tshark_log_dir }}"
+    mode: 0775
+    group: "{{ tshark_group }}"
+    state: directory
+
+- name: add tshark_group_members from list
+  user:
+    name: "{{ item.key }}"
+    groups: "{{ tshark_group }}"
+    append: yes
+  with_dict: "{{ tshark_group_members }}"
+  when:
+    - item.value.state == 'present'
+
+- name: get all group members
+  shell: "getent group {{ tshark_group }} | cut -f4 -d':' | sed -E 's/,/\\n/g'"
+  register: register_getent_group_tshark
+  changed_when: false
+
+- name: remove tshark_group_members from tshark_group
+  user:
+    name: "{{ item.key }}"
+    groups: "{{ tshark_group }}"
+    append: no
+  with_dict: "{{ tshark_group_members }}"
+  when:
+    - item.value.state == 'absent'
+    - item.key in register_getent_group_tshark.stdout_lines
+
+- name: "create directory {{ system_capture_dir }}"
+  become: true
+  become_method: sudo
+  file:
+    path: "{{ system_capture_dir }}"
+    mode: 0775
+    owner: root
+    group: root
+    state: directory
+
+- name: "get {{ tshark_capture_dir}} exists"
+  stat:
+    path: "{{ tshark_capture_dir }}"
+  register: tshark_link
+
+- name: "get NFS directory {{ nfs_artifact_wireshark_dir }} exists"
+  stat:
+    path: "{{ nfs_artifact_wireshark_dir }}"
+  register: client_nfs_path
+
+- name: "link artifact directory {{ nfs_artifact_wireshark_dir}} to {{ tshark_capture_dir }}"
+  become: true
+  become_method: sudo
+  file:
+    src: "{{ nfs_artifact_wireshark_dir }}"
+    dest: "{{ tshark_capture_dir }}"
+    mode: 0775
+    state: link
+  when: client_nfs_path.stat.exists == true and tshark_link.stat.exists == false
+
+- name: get NFS server directory /mnt/nfs/vm-cluster-master/wireshark exists
+  stat:
+    path: /mnt/nfs/vm-cluster-master/wireshark
+  register: server_nfs_path
+
+- name: "link artifact directory /mnt/nfs/vm-cluster-master/wireshark to {{ tashark_capture_dir }}"
+  become: true
+  become_method: sudo
+  file:
+    src: /mnt/nfs/vm-cluster-master/wireshark
+    dest: "{{ tshark_capture_dir }}"
+    owner: vagrant
+    group: vagrant
+    mode: 0755
+    state: link
+  when: server_nfs_path.stat.exists == true and tshark_link.stat.exists == false
+
+- name: copy tshark capture script and make them executable
+  become: true
+  become_method: sudo
+  copy:
+    src: "{{ role_path }}/files/tshark-capture"
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: '755'
+  when: setup_tshark_service
+
+- name: copy tshark capture service script
+  become: true
+  become_method: sudo
+  copy:
+    src: "{{ role_path }}/files/tshark-capture.service"
+    dest: /lib/systemd/system
+    owner: root
+    group: root
+    mode: '644'
+  when: setup_tshark_service
+
+- name: export SSLKEYLOGFILE capture to vagrant .bashrc
+  lineinfile:
+    dest: /etc/profile
+    regexp: "^export SSLKEYLOGFILE=/var/capture/tshark/sslkeylog.txt"
+    line: "export SSLKEYLOGFILE=/var/capture/tshark/sslkeylog.txt"
+    create: yes
+
+- name: copy tshark device/filter files into capture directory
+  copy:
+    src: "{{ role_path }}/files/{{ item }}"
+    dest: "{{ tshark_capture_dir}}"
+    owner: vagrant
+    group: vagrant
+    mode: '644'
+  with_items:
+    - .tshark_devices
+    - .tshark_filters
+
+
+
