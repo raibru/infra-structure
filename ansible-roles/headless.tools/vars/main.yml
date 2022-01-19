@@ -17,6 +17,7 @@ utils_list_basic:
     - git
     - neofetch
     - tmux
+    - xclip
     - glances
     - tidy
     - exuberant-ctags
