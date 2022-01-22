@@ -1,0 +1,13 @@
+---
+# defaults file for docker.registry
+registry_name: registry
+registry_version: 2.7
+registry_latest: latest
+registry_run: run
+registry_ip: 192.168.59.10
+
+registry_docker_hub: "{{ registry_name }}:{{ registry_version }}"
+registry_tag_latest: "{{ registry_name }}:{{ registry_latest }}"
+registry_tag_run: "{{ registry_name }}:{{ registry_run }}"
+
+root_dir: "{{ playbook_dir }}/.."
