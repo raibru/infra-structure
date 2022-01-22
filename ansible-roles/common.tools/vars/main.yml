@@ -1,7 +1,9 @@
 ---
 # vars file for common.tools
 utils_list_prerequisites:
-    - aptitude
+    #- aptitude -> old package manager tool - use newer apt
+    - curl
+    - wget
 
 utils_list_basic:
     - command-not-found
@@ -20,11 +22,9 @@ utils_list_basic:
     - glances
 
 utils_list_network:
-    - curl
     - iftop
     - mtr
     - nmap
-    - wget
     - wget2
     - telnet
     - iperf
