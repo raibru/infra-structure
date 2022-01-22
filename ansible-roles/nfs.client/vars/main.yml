@@ -2,3 +2,10 @@
 # vars file for client.nfs
 
 __nfs_package: nfs-common
+
+__nfs_client_dirs:
+  - "/mnt/nfs/wireshark"
+  - "/mnt/nfs/logs"
+  - "/mnt/nfs/session"
+  - "/mnt/nfs/archive"
+  - "/mnt/nfs/infra"
