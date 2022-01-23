@@ -1,0 +1,34 @@
+---
+# tasks setup docker.registry certificates
+
+- name: ensure openssl has subjectAltName IP entry for registry service
+  lineinfile:
+    dest: /etc/ssl/openssl.cnf
+    insertafter: '^\[ v3_ca \]$'
+    line: "subjectAltName=IP:{{ registry_ip }},IP:127.0.0.1"
+    firstmatch: yes
+    state: present
+  become: true
+
+- name: copy template docker registry cert config file
+  template:
+    src: docker-registry-cert.conf
+    dest: "{{ root_dir }}/build/certs/develop-registry-cert.conf"
+  connection: local
+  become: false
+  run_once: true
+  when: not cert_docker_registry_stat.stat.exists
+
+- name: generate a develop cert and key for docker registry
+  command: >
+    openssl req -x509
+    -out {{ root_dir }}/build/certs/develop.crt
+    -keyout {{ root_dir }}/build/certs/develop.key
+    -days 1825 -newkey rsa:2048 -nodes -sha256
+    -subj '/C=DE/ST=HB/L=HB/O=DEV/OU=DEV/CN={{ registry_ip }}'
+    -extensions EXT
+    -config {{ root_dir }}/build/certs/develop-registry-cert.conf
+  connection: local
+  become: false
+  run_once: true
+  when: not cert_docker_registry_stat.stat.exists

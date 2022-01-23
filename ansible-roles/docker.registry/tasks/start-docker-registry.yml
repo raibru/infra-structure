@@ -1,0 +1,81 @@
+---
+# tasks setup docker.registry service
+
+- name: make a certifactes directory in docker registry
+  file:
+    path: /certificates
+    state: directory
+    owner: root
+    group: root
+  become: true
+
+- name: copy docker registry develop cert into remote certs
+  copy:
+    src: "{{ root_dir }}/build/certs/develop.crt"
+    dest: "/certificates/develop.crt"
+    owner: root
+    group: root
+  become: true
+
+- name: copy docker registry develop key into remote certs
+  copy:
+    src: "{{ root_dir }}/build/certs/develop.key"
+    dest: "/certificates/develop.key"
+    owner: root
+    group: root
+  become: true
+
+- name: ensure Docker cert store directory exists
+  file:
+    path: "/etc/docker/certs.d/{{ registry_ip }}:5000/"
+    state: directory
+    recurse: true
+    owner: root
+    group: root
+  become: true
+
+- name: copy docker registry developer cert into docker cert store.
+  copy:
+    src: "{{ root_dir }}/build/certs/develop.crt"
+    dest: "/etc/docker/certs.d/{{ registry_ip }}:5000/ca.crt"
+    owner: root
+    group: root
+  become: true
+
+- name: restart docker service
+  become: true
+  service:
+    name: docker.service
+    state: restarted
+
+- name: "pull image {{ registry_docker_hub }} from docker hub"
+  command:
+    cmd: "docker pull {{ registry_docker_hub }}"
+  become: true
+
+- name: "tag pulled image with {{ registry_tag_latest }}"
+  command:
+    cmd: "docker tag {{ registry_docker_hub }} {{ registry_tag_latest}}"
+  become: true
+
+- name: "tag pulled image with {{ registry_tag_run }}"
+  command:
+    cmd: "docker tag {{ registry_docker_hub }} {{ registry_tag_run}}"
+  become: true
+
+- name: "run docker image {{ registry_tag_run }}"
+  command: >
+    docker run -d --restart always
+    -p 5000:5000
+    -v /certificates:/certificates
+    -v /var/registry:/var/lib/registry
+    -e REGISTRY_HTTP_TLS_CERTIFICATE=/certificates/develop.crt
+    -e REGISTRY_HTTP_TLS_KEY=/certificates/develop.key
+    --name {{ registry_name }}
+    {{ registry_tag_run }}
+  become: true
+
+- name: wait a second until registry container is successful started
+  command:
+    cmd: sleep 1
+  become: true

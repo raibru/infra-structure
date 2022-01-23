@@ -1,0 +1,17 @@
+---
+# tasks cleanup docker.registry
+
+- name: "kill running {{ registry_name }} container"
+  command:
+    cmd: "docker kill {{ registry_name }}"
+  become: true
+
+- name: "remove stopped {{ registry_name }} container"
+  command:
+    cmd: "docker rm {{ registry_name }}"
+  become: true
+
+- name: wait a second until registry container is successful started
+  command:
+    cmd: sleep 1
+  become: true
