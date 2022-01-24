@@ -1,0 +1,6 @@
+---
+- name: start registry docker service
+  hosts: registry
+  roles:
+    - nfs.client
+    - docker.registry

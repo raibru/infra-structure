@@ -1,0 +1,7 @@
+---
+- name: setup master behavior
+  hosts: master
+  become: true
+  roles:
+    - nfs.server
+    - k3s.master

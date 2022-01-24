@@ -1,27 +1,35 @@
 ---
-- name: setup cluster nodes based on ubuntu
+- name: setup base tools in cluster
   hosts: cluster
   become: true
   roles:
     - common.tools
 
-- name: setup master behavior
-  hosts: master
-  become: true
-  roles:
-    - nfs.server
-    - k3s.master
+- name: include setup master playbook
+  import_playbook: setup_master.yml
 
-- name: setup workers behavior
-  hosts: workers
-  become: true
-  roles:
-    - nfs.client
-    - k3s.node
+- name: include setup node playbook
+  import_playbook: setup_node.yml
+
+- name: include setup registry playbook
+  import_playbook: setup_registry.yml
+
+#- name: setup master behavior
+#  hosts: master
+#  become: true
+#  roles:
+#    - nfs.server
+#    - k3s.master
+#
+#- name: setup workers behavior
+#  hosts: workers
+#  become: true
+#  roles:
+#    - nfs.client
+#    - k3s.node
 
 - name: setup tshark in cluster
   hosts: cluster
   become: true
   roles:
     - tshark
-

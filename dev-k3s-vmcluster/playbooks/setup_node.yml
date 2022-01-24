@@ -1,0 +1,7 @@
+---
+- name: setup node behavior
+  hosts: nodes
+  become: true
+  roles:
+    - nfs.client
+    - k3s.node
