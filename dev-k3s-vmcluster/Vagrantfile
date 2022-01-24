@@ -3,10 +3,11 @@
 
 master_name = "vm-master"
 master_ip =   "192.168.59.11"
-workers = { 
-              "vm-worker1" => "192.168.59.12",
-              "vm-worker2" => "192.168.59.13",
-              "vm-worker3" => "192.168.59.14"
+nodes_name = "vm-nodes"
+nodes = { 
+              "vm-node-1" => "192.168.59.12",
+              "vm-node-2" => "192.168.59.13",
+              "vm-node-3" => "192.168.59.14"
           }
 reg_name  = "vm-registry"
 reg_ip =    "192.168.59.10"
@@ -26,7 +27,7 @@ master_script = <<-SHELL
   cp /etc/rancher/k3s/k3s.yaml /mnt/vm-cluster/
   SHELL
 
-worker_script = <<-SHELL
+node_script = <<-SHELL
   sudo -i
   export K3S_TOKEN_FILE=/mnt/vm-cluster/node-token
   export K3S_URL=https://#{master_ip}:6443
@@ -34,15 +35,21 @@ worker_script = <<-SHELL
   curl -sfL https://get.k3s.io | sh -
   SHELL
 
+#  docker run -d -p 5000:5000 --restart always -v /var/registry:/var/lib/registry --name registry registry:run
 registry_script = <<-SHELL
-  docker pull registry:latest
+  docker pull --quiet registry:latest
   docker tag registry:latest registry:2.7
   docker tag registry:latest registry:run
-  docker run -d -p 5000:5000 --restart always -v /mnt/registry:/var/lib/registry --name registry registry:run
+  docker run -d -p 5000:5000 --restart always --name registry registry:run
   echo "Sleeping for 5 seconds to wait for docker registry container to start"
   sleep 5
   echo "Private docker registry content:"
   curl -k -s -X GET http://192.168.59.10:5000/v2/_catalog
+  SHELL
+
+daemon_script = <<-SHELL
+  sudo -i
+  cp /tmp/daemon.json /etc/docker/daemon.json
   SHELL
 
 
@@ -73,18 +80,18 @@ Vagrant.configure("2") do |config|
     #master.vm.provision "shell", inline: master_script
   end
 
-  # workers setup
-  workers.each do |worker_name, worker_ip|
-    config.vm.define worker_name do |worker|
-      worker.vm.box = "bento/ubuntu-20.04"
-      worker.vm.hostname = "#{worker_name}.test"
-      worker.vm.network :private_network, ip: worker_ip
-      worker.vm.provider :virtualbox do |vb|
+  # nodes setup
+  nodes.each do |node_name, node_ip|
+    config.vm.define node_name do |node|
+      node.vm.box = "bento/ubuntu-20.04"
+      node.vm.hostname = "#{node_name}.test"
+      node.vm.network :private_network, ip: node_ip
+      node.vm.provider :virtualbox do |vb|
         vb.memory = "1024"
         vb.cpus = "1"
         vb.linked_clone = true
       end
-      #worker.vm.provision "shell", inline: worker_script
+      #node.vm.provision "shell", inline: node_script
     end
   end
 
@@ -98,7 +105,12 @@ Vagrant.configure("2") do |config|
       vb.cpus = "1"
       vb.linked_clone = true
     end
-    reg.vm.provision "shell", inline: registry_script
+    #reg.vm.provision "shell", inline: registry_script
+    #reg.vm.provision "ansible" do |ansible|
+    #  ansible.raw_arguments = ["--inventory-file=./inventory/hosts" ]
+    #  ansible.verbose = "v"
+    #  ansible.playbook = "playbooks/setup_registry.yml"
+    #end
   end
 
 #  config.vm.provision "ansible" do |ansible|
