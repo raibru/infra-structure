@@ -1,0 +1,80 @@
+---
+# tasks file for setup client.nfs
+
+- name: "create directory {{ nfs_mount_dir }}"
+  file:
+    path: "{{ nfs_mount_dir }}"
+    owner: vagrant
+    group: vagrant
+    mode: 0744
+    state: directory
+  become: true
+
+- name: "mount NFS share point to {{ nfs_mount_dir }}"
+  mount:
+    src: "{{ nfs_server_share_point }}"
+    path: "{{ nfs_mount_dir }}"
+    state: mounted
+    fstype: nfs
+  become: true
+
+#  - name: register client /mnt/nfs/inventory_hostname directory exists
+#    stat:
+#      path: "/mnt/nfs/{{ inventory_hostname_short }}"
+#    register: client_hostname_nfs_dir
+
+#- name: "create directory {{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
+#  file:
+#    path: "{{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
+#    owner: vagrant
+#    group: vagrant
+#    mode: 0775
+#    state: directory
+
+#- name: "umount NFS shared point from {{ nfs_mount_dir }}"
+#  mount:
+#    path: "{{ nfs_mount_dir }}"
+#    state: absent
+#  failed_when: False
+#
+## mount absent from previous step removes also directory
+#- name: "set directory {{ nfs_mount_dir }} exists"
+#  stat:
+#    path: "{{ nfs_mount_dir }}"
+#  register: client_nfs_path
+
+#- name: "create directory {{ nfs_mount_dir }}"
+#  file:
+#    path: "{{ nfs_mount_dir }}"
+#    owner: vagrant
+#    group: vagrant
+#    mode: 0744
+#    state: directory
+#  become: true
+#  when: client_nfs_path.stat.exists == false
+
+- name: create artifact directories in NFS share
+  file:
+    path: "{{ item }}"
+    owner: vagrant
+    group: vagrant
+    mode: 0775
+    state: directory
+  with_items: "{{ nfs_artifacts_dirs }}"
+
+- name: create directory ~/docs
+  file:
+    path: /home/vagrant/docs
+    owner: vagrant
+    group: vagrant
+    mode: 0775
+    state: directory
+
+- name: "link short access {{ nfs_mount_dir }} to ~/docs/artifacts"
+  file:
+    src: "{{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
+    dest: /home/vagrant/docs/artifacts
+    owner: vagrant
+    group: vagrant
+    mode: 0775
+    state: link

@@ -1,124 +1,123 @@
 ---
 # tasks file for client.nfs
 
-- name: install NFS for client
-  become: true
-  become_method: sudo
-  apt:
-    name: "{{ nfs_package }}"
-    state: present
-
-- name: "get directory {{ nfs_mount_dir }} exists"
+- name: "check directory {{ nfs_mount_dir }} exists"
   stat:
     path: "{{ nfs_mount_dir }}"
   register: client_nfs_path
 
-- name: "create NFS directory {{ nfs_mount_dir }}"
+- name: "check {{ nfs_mount_dir }} is already a mountpoint"
+  command: "mountpoint {{ nfs_mount_dir }}"
+  failed_when: False
+  changed_when: False
+  register: nfs_mount_stat
+#- debug:
+#    var: nfs_mount_stat.stdout
+
+- name: install NFS for client
+  apt:
+    name: "{{ nfs_package }}"
+    state: present
   become: true
-  become_method: sudo
+
+- name: "create NFS directory {{ nfs_mount_dir }}"
   file:
     path: "{{ nfs_mount_dir }}"
     owner: vagrant
     group: vagrant
     mode: 0744
     state: directory
-  when: client_nfs_path.stat.exists == false
+  become: true
+  when: not client_nfs_path.stat.exists
 
-- name: "get info about {{ nfs_mount_dir }} is already a mountpoint"
-  command: "mountpoint {{ nfs_mount_dir }}"
-  register: nfs_mount_stat
-  failed_when: False
-  changed_when: False
-#- debug:
-#    var: nfs_mount_stat.stdout
 
-- name: print info about not execute nfs tasks inside block
-  debug:
-    msg: "Already done -> {{ nfs_mount_stat.stdout }}"
-  when: '"/mnt/nfs is a mountpoint" in nfs_mount_stat.stdout'
-
-- block:
-
-  - name: "mount NFS share point to {{ nfs_mount_dir }}"
-    become: true
-    become_method: sudo
-    mount:
-      src: "{{ nfs_server_share_point }}"
-      path: "{{ nfs_mount_dir }}"
-      state: mounted
-      fstype: nfs
-
-#  - name: register client /mnt/nfs/inventory_hostname directory exists
-#    stat:
-#      path: "/mnt/nfs/{{ inventory_hostname_short }}"
-#    register: client_hostname_nfs_dir
-
-  - name: "create directory {{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
-    file:
-      path: "{{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
-      owner: vagrant
-      group: vagrant
-      mode: 0775
-      state: directory
-#    when: client_hostname_nfs_dir.exists == false
-
-  - name: "umount NFS shared point from {{ nfs_mount_dir }}"
-    mount:
-      path: "{{ nfs_mount_dir }}"
-      state: absent
-    failed_when: False
-
-  # mount absent from previous step removes also directory
-  - name: "set directory {{ nfs_mount_dir }} exists"
-    stat:
-      path: "{{ nfs_mount_dir }}"
-    register: client_nfs_path
-
-  - name: "create directory {{ nfs_mount_dir }}"
-    become: true
-    become_method: sudo
-    file:
-      path: "{{ nfs_mount_dir }}"
-      owner: vagrant
-      group: vagrant
-      mode: 0744
-      state: directory
-    when: client_nfs_path.stat.exists == false
-
-  - name: "mount NFS share point host directory to {{ nfs_mount_dir }}"
-    mount:
-      src: "{{ nfs_remote_mount_point }}"
-      path: "{{ nfs_mount_dir }}"
-      state: mounted
-      fstype: nfs
-
-  - name: create artifact directories in NFS share
-    file:
-      path: "{{ item }}"
-      owner: vagrant
-      group: vagrant
-      mode: 0775
-      state: directory
-    with_items: "{{ nfs_client_dirs }}"
-
-  - name: create directory ~/docs
-    file:
-      path: /home/vagrant/docs
-      owner: vagrant
-      group: vagrant
-      mode: 0775
-      state: directory
-
-  - name: "link short access {{ nfs_mount_dir }} to ~/docs/artifacts"
-    file:
-      src: "{{ nfs_mount_dir }}"
-      dest: /home/vagrant/docs/artifacts
-      owner: vagrant
-      group: vagrant
-      mode: 0775
-      state: link
-
-  # block
+- name: execute setup-nfs task if not already done
+  include_tasks: setup-nfs.yml
   when: '"/mnt/nfs is a mountpoint" not in nfs_mount_stat.stdout'
-  # block end
 
+#- name: print info about not execute nfs tasks inside block
+#  debug:
+#    msg: "Already done -> {{ nfs_mount_stat.stdout }}"
+#  when: '"/mnt/nfs is a mountpoint" in nfs_mount_stat.stdout'
+#
+#- block:
+#
+#  - name: "mount NFS share point to {{ nfs_mount_dir }}"
+#    mount:
+#      src: "{{ nfs_server_share_point }}"
+#      path: "{{ nfs_mount_dir }}"
+#      state: mounted
+#      fstype: nfs
+#    become: true
+#
+##  - name: register client /mnt/nfs/inventory_hostname directory exists
+##    stat:
+##      path: "/mnt/nfs/{{ inventory_hostname_short }}"
+##    register: client_hostname_nfs_dir
+#
+#  - name: "create directory {{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
+#    file:
+#      path: "{{ nfs_mount_dir }}/{{ inventory_hostname_short }}"
+#      owner: vagrant
+#      group: vagrant
+#      mode: 0775
+#      state: directory
+#
+#  - name: "umount NFS shared point from {{ nfs_mount_dir }}"
+#    mount:
+#      path: "{{ nfs_mount_dir }}"
+#      state: absent
+#    failed_when: False
+#
+#  # mount absent from previous step removes also directory
+#  - name: "set directory {{ nfs_mount_dir }} exists"
+#    stat:
+#      path: "{{ nfs_mount_dir }}"
+#    register: client_nfs_path
+#
+#  - name: "create directory {{ nfs_mount_dir }}"
+#    file:
+#      path: "{{ nfs_mount_dir }}"
+#      owner: vagrant
+#      group: vagrant
+#      mode: 0744
+#      state: directory
+#    become: true
+#    when: client_nfs_path.stat.exists == false
+#
+#  - name: "mount NFS share point host directory to {{ nfs_mount_dir }}"
+#    mount:
+#      src: "{{ nfs_remote_mount_point }}"
+#      path: "{{ nfs_mount_dir }}"
+#      state: mounted
+#      fstype: nfs
+#
+#  - name: create artifact directories in NFS share
+#    file:
+#      path: "{{ item }}"
+#      owner: vagrant
+#      group: vagrant
+#      mode: 0775
+#      state: directory
+#    with_items: "{{ nfs_client_dirs }}"
+#
+#  - name: create directory ~/docs
+#    file:
+#      path: /home/vagrant/docs
+#      owner: vagrant
+#      group: vagrant
+#      mode: 0775
+#      state: directory
+#
+#  - name: "link short access {{ nfs_mount_dir }} to ~/docs/artifacts"
+#    file:
+#      src: "{{ nfs_mount_dir }}"
+#      dest: /home/vagrant/docs/artifacts
+#      owner: vagrant
+#      group: vagrant
+#      mode: 0775
+#      state: link
+#
+#  # block
+#  when: '"/mnt/nfs is a mountpoint" not in nfs_mount_stat.stdout'
+#  # block end

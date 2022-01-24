@@ -1,11 +1,11 @@
 ---
 # tasks file for tshark
-- name: get setuid is selected
+- name: check setuid is selected
   command: debconf-show wireshark-common
   changed_when: false
   register: register_debconf_show
 
-- name: set install-setuid and get execute result
+- name: check install-setuid and get execute result
   shell: echo debconf wireshark-common/install-setuid select true | debconf-set-selections
   register: register_debconf_set
   when:
@@ -41,7 +41,7 @@
   when:
     - item.value.state == 'present'
 
-- name: get all group members
+- name: check all group members
   shell: "getent group {{ tshark_group }} | cut -f4 -d':' | sed -E 's/,/\\n/g'"
   register: register_getent_group_tshark
   changed_when: false
@@ -66,15 +66,15 @@
     group: root
     state: directory
 
-- name: "get {{ tshark_capture_dir}} exists"
+- name: "check {{ tshark_capture_dir}} exists"
   stat:
     path: "{{ tshark_capture_dir }}"
   register: tshark_link
 
-- name: "get NFS directory {{ nfs_artifact_wireshark_dir }} exists"
-  stat:
-    path: "{{ nfs_artifact_wireshark_dir }}"
-  register: client_nfs_path
+#- name: "check NFS directory {{ nfs_artifact_wireshark_dir }} exists"
+#  stat:
+#    path: "{{ nfs_artifact_wireshark_dir }}"
+#  register: client_nfs_path
 
 - name: "link artifact directory {{ nfs_artifact_wireshark_dir}} to {{ tshark_capture_dir }}"
   become: true
@@ -84,24 +84,24 @@
     dest: "{{ tshark_capture_dir }}"
     mode: 0775
     state: link
-  when: client_nfs_path.stat.exists == true and tshark_link.stat.exists == false
+  #when: client_nfs_path.stat.exists == true and tshark_link.stat.exists == false
 
-- name: get NFS server directory /mnt/nfs/vm-cluster-master/wireshark exists
-  stat:
-    path: /mnt/nfs/vm-cluster-master/wireshark
-  register: server_nfs_path
-
-- name: "link artifact directory /mnt/nfs/vm-cluster-master/wireshark to {{ tashark_capture_dir }}"
-  become: true
-  become_method: sudo
-  file:
-    src: /mnt/nfs/vm-cluster-master/wireshark
-    dest: "{{ tshark_capture_dir }}"
-    owner: vagrant
-    group: vagrant
-    mode: 0755
-    state: link
-  when: server_nfs_path.stat.exists == true and tshark_link.stat.exists == false
+#- name: get NFS server directory /mnt/nfs/vm-master/wireshark exists
+#  stat:
+#    path: /mnt/nfs/vm-master/wireshark
+#  register: server_nfs_path
+#
+#- name: "link artifact directory /mnt/nfs/vm-master/wireshark to {{ tashark_capture_dir }}"
+#  become: true
+#  become_method: sudo
+#  file:
+#    src: /mnt/nfs/vm-master/wireshark
+#    dest: "{{ tshark_capture_dir }}"
+#    owner: vagrant
+#    group: vagrant
+#    mode: 0755
+#    state: link
+#  when: server_nfs_path.stat.exists == true and tshark_link.stat.exists == false
 
 - name: copy tshark capture script and make them executable
   become: true

@@ -7,4 +7,6 @@ __nfs_artifacts_dirs:
   - "/mnt/nfs/{{ inventory_hostname_short }}/logs"
   - "/mnt/nfs/{{ inventory_hostname_short }}/session"
   - "/mnt/nfs/{{ inventory_hostname_short }}/archive"
+  - "/mnt/nfs/share/certs"
+  - "/mnt/nfs/share/etc"
 

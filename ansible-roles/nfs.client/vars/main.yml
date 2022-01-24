@@ -3,9 +3,8 @@
 
 __nfs_package: nfs-common
 
-__nfs_client_dirs:
-  - "/mnt/nfs/wireshark"
-  - "/mnt/nfs/logs"
-  - "/mnt/nfs/session"
-  - "/mnt/nfs/archive"
-  - "/mnt/nfs/infra"
+__nfs_artifacts_dirs:
+  - "/mnt/nfs/{{ inventory_hostname_short }}/wireshark"
+  - "/mnt/nfs/{{ inventory_hostname_short }}/logs"
+  - "/mnt/nfs/{{ inventory_hostname_short }}/session"
+  - "/mnt/nfs/{{ inventory_hostname_short }}/archive"

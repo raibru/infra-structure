@@ -7,7 +7,7 @@ system_capture_dir: /var/capture
 tshark_log_dir: /var/log/tshark
 tshark_capture_dir: "{{ system_capture_dir }}/tshark"
 
-nfs_artifact_wireshark_dir: /mnt/nfs/wireshark
+nfs_artifact_wireshark_dir: /mnt/nfs/{{ inventory_hostname_short }}/wireshark
 
 setup_tshark_service: true
 
