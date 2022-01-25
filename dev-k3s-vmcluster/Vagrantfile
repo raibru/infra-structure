@@ -2,15 +2,17 @@
 # vi: set ft=ruby :
 
 master_name = "vm-master"
-master_ip =   "192.168.59.11"
-nodes_name = "vm-nodes"
+master_ip   = "192.168.59.11"
+
+nodes_name  = "vm-nodes"
 nodes = { 
-              "vm-node-1" => "192.168.59.12",
-              "vm-node-2" => "192.168.59.13",
-              "vm-node-3" => "192.168.59.14"
-          }
-reg_name  = "vm-registry"
-reg_ip =    "192.168.59.10"
+          "vm-node-1" => "192.168.59.12",
+          "vm-node-2" => "192.168.59.13",
+          "vm-node-3" => "192.168.59.14"
+        }
+
+reg_name    = "vm-registry"
+reg_ip      = "192.168.59.10"
 
 # Extra parameters in INSTALL_K3S_EXEC variable because of
 # K3s picking up the wrong interface when starting server and agent
@@ -35,7 +37,6 @@ node_script = <<-SHELL
   curl -sfL https://get.k3s.io | sh -
   SHELL
 
-#  docker run -d -p 5000:5000 --restart always -v /var/registry:/var/lib/registry --name registry registry:run
 registry_script = <<-SHELL
   docker pull --quiet registry:latest
   docker tag registry:latest registry:2.7
@@ -71,7 +72,7 @@ Vagrant.configure("2") do |config|
     master.vm.box = "bento/ubuntu-20.04"
     master.vm.hostname = "#{master_name}.test"
     master.vm.network :private_network, ip: master_ip
-    master.vm.synced_folder "/home/rbr/Projects/share/vbox/vm-cluster", "/mnt/vm-cluster"
+    master.vm.synced_folder "vbox/vm-cluster", "/mnt/vm-cluster"
     master.vm.provider :virtualbox do |vb|
       vb.memory = "2048"
       vb.cpus = "2"
@@ -99,7 +100,7 @@ Vagrant.configure("2") do |config|
     reg.vm.box = "gusztavvargadr/docker-linux"
     reg.vm.hostname = "#{reg_name}.test"
     reg.vm.network :private_network, ip: reg_ip
-    #reg.vm.synced_folder "/home/rbr/Projects/share/vbox/vm-cluster/register", "/mnt/vm-register"
+    #reg.vm.synced_folder "vbox/vm-cluster/register", "/mnt/vm-register"
     reg.vm.provider :virtualbox do |vb|
       vb.memory = "1024"
       vb.cpus = "1"
@@ -118,4 +119,3 @@ Vagrant.configure("2") do |config|
 #  end
 
 end
-
