@@ -32,3 +32,6 @@
   become: false
   run_once: true
   when: not cert_docker_registry_stat.stat.exists
+
+- debug: inform about changed cert
+    value: cert has changed. Copy file to /etc/docker/cert.d/.../ca.crt
