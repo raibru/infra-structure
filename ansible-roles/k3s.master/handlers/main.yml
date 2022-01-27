@@ -1,2 +1,8 @@
 ---
 # handlers file for k3s.master
+
+- name: restart k3s service
+  service:
+    name: k3s
+    state: restarted
+  become: true

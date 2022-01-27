@@ -1,2 +1,8 @@
 ---
 # handlers file for k3s.node
+
+- name: restart k3s-agent service
+  service:
+    name: k3s-agent
+    state: restarted
+  become: true

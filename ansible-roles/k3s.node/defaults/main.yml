@@ -1,2 +1,4 @@
 ---
 # defaults file for k3s.node
+
+registry_addr: localhost

@@ -18,8 +18,24 @@
 #  when: inventory_hostname_short | regex_search('.*worker.*')
 
 - name: install and register k3s node
-  become: true
-  become_method: sudo
   shell: 'curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--flannel-iface=eth1" K3S_URL=https://{{ hostvars["vm-master"].ansible_host }}:6443 K3S_TOKEN={{ hostvars["vm-master"].cluster_token.stdout }} K3S_MODE_NAME={{ inventory_hostname_short }} sh -'
+  become: true
 
+- name: "check directory /etc/rancher/k3s exists"
+  stat:
+    path: "/etc/rancher/k3s"
+  register: etc_rancher_k3s_dir
 
+- name: "create directory /etc/rancher/k3s"
+  file:
+    path: /etc/rancher/k3s
+    state: directory
+  become: true
+  when: not etc_rancher_k3s_dir.stat.exists
+
+- name: copy private docker registries template configuration
+  template:
+    src: etc/rancher/k3s/registries.yaml
+    dest: /etc/rancher/k3s/registries.yaml
+  become: true
+  notify: restart k3s-agent service
