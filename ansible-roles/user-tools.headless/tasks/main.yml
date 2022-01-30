@@ -1,0 +1,19 @@
+---
+# tasks file for user-tools.headless
+#
+- name: Utils | Update apt cache
+  apt:
+    update_cache: yes
+    cache_valid_time: "{{ utils_cache_valid }}"
+  become: true
+  when: utils_update_cache
+
+- name: Utils Install user utilities
+  apt:
+    pkg: "{{ item }}"
+    state: present
+  become: true
+  with_items: "{{ utils_list_user }}"
+  when: utils_install_user
+
+# EOF

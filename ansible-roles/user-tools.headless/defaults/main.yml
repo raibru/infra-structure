@@ -1,0 +1,15 @@
+---
+# Role behavior:
+utils_install_user: True                # If set to true role will install list of user configured packages
+
+# Role lists:
+utils_list_user: []                     # Placeholder for list item. Look at vars/main.yml
+
+# Apt behavior:
+utils_update_cache: True                # If set to true role will update application cache before execution.
+utils_cache_valid: "3600"               # How long cache will be valid after update. e.g. 3600s
+utils_upgrade_type: "safe"              # Default upgrade type. You can use:
+                                        # If yes or safe, performs an aptitude safe-upgrade
+                                        # If full, performs an aptitude full-upgrade
+                                        # If dist, performs an apt-get dist-upgrade
+

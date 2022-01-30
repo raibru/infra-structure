@@ -1,6 +1,6 @@
 galaxy_info:
   author: raibru
-  description: install some useful tools for a headless ubuntu
+  description: install some user cli tools in an ubuntu headless environment
   company:
 
   license: license (MIT)

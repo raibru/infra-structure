@@ -1,0 +1,23 @@
+---
+# vars file for user-tools.headless
+utils_list_user:
+    - youtube-dl
+    - asciidoc
+    - asciidoctor
+    - graphviz
+    - plantuml
+    - pandoc
+    - taskwarrior
+    - tasksh
+    - neomutt
+    - w3m
+    - texlive-xetex
+    - texlive-fonts-extra
+    - texlive-lang-english
+    - texlive-lang-german
+    - librsvg2-bin
+    - imagemagick
+    - pdf-presenter-console
+    - poppler-utils
+
+
